@@ -1,0 +1,68 @@
+import random
+
+# Заданные нетерминальные символы и правила для замены
+rules = {
+    'S': ['AB', 'BC', 'A', 'B', 'C'],
+    'A': ['a', 'AA'],
+    'B': ['b', 'BB'],
+    'C': ['c'],
+}
+
+def is_deterministic(rules, start_symbol, seen_symbols=None):
+    if seen_symbols is None:
+        seen_symbols = set()
+
+    if start_symbol in seen_symbols:
+        return False
+
+    seen_symbols.add(start_symbol)
+
+    for production in rules.get(start_symbol, []):
+        if len(production) == 1 and production.isupper():
+            if not is_deterministic(rules, production, seen_symbols):
+                return False
+
+    seen_symbols.remove(start_symbol)
+    return True
+
+def generate_random_string(start_symbol):
+    if start_symbol in rules:
+        production = random.choice(rules[start_symbol])
+        result = ''
+        for symbol in production:
+            result += generate_random_string(symbol)
+        return result
+    else:
+        return start_symbol
+
+# Задайте свою конечную строку
+given_string = "abcab"
+
+def is_part_of_grammar(rules, start_symbol, given_string):
+    if start_symbol in rules:
+        for production in rules[start_symbol]:
+            if len(production) == len(given_string):
+                match = True
+                for i in range(len(production)):
+                    if production[i].isupper() and not is_part_of_grammar(rules, production[i], given_string[i]):
+                        match = False
+                        break
+                    elif production[i] != given_string[i]:
+                        match = False
+                        break
+                if match:
+                    return True
+    else:
+        return start_symbol == given_string
+
+# Пример использования
+print(f"Проверка, является ли '{given_string}' частью грамматики:")
+if is_part_of_grammar(rules, 'S', given_string):
+    print(f"'{given_string}' является частью грамматики.")
+else:
+    print(f"'{given_string}' НЕ является частью грамматики.")
+
+if is_deterministic(rules, 'S'):
+    print("Грамматика детерминированная.")
+else:
+    print("Грамматика НЕ детерминированная.")
